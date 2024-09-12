@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-
+from fastapi.params import Body
 app = FastAPI()
 
 @app.get("/")
@@ -11,5 +11,7 @@ async def root():
     return {"message" : "This is a test."}
 
 @app.post("/create_post")
-def create_post():
-    return {"message" : "This is a post"}
+def create_post(payLoad: dict = Body(...)):
+
+    # this is how we extract the data from body of the payload 
+    return {"title" : f"title is {payLoad['title']}", "content": f"Content is {payLoad['content']}"}
