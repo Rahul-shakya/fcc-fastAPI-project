@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import FastAPI
 from fastapi.params import Body
 from pydantic import BaseModel
@@ -5,6 +6,10 @@ from pydantic import BaseModel
 class Post(BaseModel):
     title: str
     content: str
+    
+    # optional default values --
+    defaultVal1: bool = False
+    defaultVal2: Optional[int] = None
 
 app = FastAPI()
 
@@ -24,5 +29,5 @@ def create_post(payLoad: Post):
 
     # using pydantic, simple printing does the job, we dont have to do like before |
     print(payLoad)
-    print(f"{payLoad.title}  {payLoad.content}")
+    print(f"{payLoad.title}  {payLoad.content} {payLoad.defaultVal1} {payLoad.defaultVal2}")
     return True
