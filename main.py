@@ -8,18 +8,27 @@ class Post(BaseModel):
     content: str
     
     # optional default values --
-    defaultVal1: bool = False
-    defaultVal2: Optional[int] = None
+    isPublic: bool = False
+    rating: Optional[int] = None
+
+class DataStore():
+    def __init__(self):
+        self.posts = []
+
+    def add_post(self, post):
+        self.posts.append(post)
+
+    def return_posts(self):
+        return self.posts
 
 app = FastAPI()
 
-@app.get("/")
-async def root():
-    return {"message" : "This is a drill."}
+posts = DataStore()
 
-@app.get("/test_get")
-async def root():
-    return {"message" : "This is a test."}
+@app.get("/")
+async def get_posts():
+    return {"posts_data" : posts.return_posts()}
+
 
 @app.post("/create_post")
 def create_post(payLoad: Post):
@@ -28,6 +37,10 @@ def create_post(payLoad: Post):
     # return {"title" : f"title is {payLoad['title']}", "content": f"Content is {payLoad['content']}"}
 
     # using pydantic, simple printing does the job, we dont have to do like before |
-    print(payLoad)
-    print(f"{payLoad.title}  {payLoad.content} {payLoad.defaultVal1} {payLoad.defaultVal2}")
+    payload_dict = payLoad.model_dump()
+    # print(f"{payLoad.title}  {payLoad.content} {payLoad.isPublic} {payLoad.rating}")
+
+    posts.add_post(payload_dict)
+    print(f"Added : {payload_dict}")
+
     return True
