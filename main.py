@@ -26,6 +26,7 @@ class DataStore():
     
     def find_post_by_id(self, id):
         for curr_post in self.posts:
+            print(curr_post)
             if id == curr_post['id']:
                 return curr_post
         return False
@@ -57,7 +58,7 @@ def create_post(payLoad: Post):
 
 
 @app.get("/posts/{id}")
-def get_post_by_id(id):
-    post = posts.find_post_by_id(int(id))
+def get_post_by_id(id : int):
+    post = posts.find_post_by_id(id)
     print(post)
     return {"post_detail" : post}
