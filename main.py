@@ -29,15 +29,15 @@ class DataStore():
             print(curr_post)
             if id == curr_post['id']:
                 return curr_post
-        return False
+        return None
 
 app = FastAPI()
 
-posts = DataStore()
+postsObj = DataStore()
 
 @app.get("/")
 async def get_posts():
-    return {"posts_data" : posts.return_posts()}
+    return {"posts_data" : postsObj.return_posts()}
 
 
 @app.post("/create_post")
@@ -48,10 +48,10 @@ def create_post(payLoad: Post):
 
     # using pydantic, simple printing does the job, we dont have to do like before
     payload_dict = payLoad.model_dump()
-    payload_dict['id'] = posts.curr_length()
+    payload_dict['id'] = postsObj.curr_length()
     # print(f"{payLoad.title}  {payLoad.content} {payLoad.isPublic} {payLoad.rating}")
 
-    posts.add_post(payload_dict)
+    postsObj.add_post(payload_dict)
     print(f"Added : {payload_dict}")
 
     return True
@@ -59,7 +59,7 @@ def create_post(payLoad: Post):
 
 @app.get("/posts/{id}")
 def get_post_by_id(id : int, response: Response):
-    post = posts.find_post_by_id(id)
+    post = postsObj.find_post_by_id(id)
     print(post)
     if not post:
         # clean way:
@@ -70,3 +70,18 @@ def get_post_by_id(id : int, response: Response):
         # response.status_code = status.HTTP_404_NOT_FOUND
         # return {'message' : f'post with id: {id} not found'}
     return {"post_detail" : post}
+
+
+@app.delete("/posts/{id}", status_code = status.HTTP_204_NO_CONTENT)
+def delete_post_by_id(id : int):
+    post_to_del = postsObj.find_post_by_id(id)
+    if post_to_del is None:
+        raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,
+                            detail = f'post with id: {id} does not exist')
+    
+    print(f'Post ID to delete: {post_to_del['id']}')
+
+    index = postsObj.posts.index(post_to_del)
+    print(index)
+    postsObj.posts.pop(index)
+    return Response(status_code = status.HTTP_204_NO_CONTENT)
