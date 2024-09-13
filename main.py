@@ -23,6 +23,12 @@ class DataStore():
     
     def curr_length(self):
         return len(self.posts)
+    
+    def find_post_by_id(self, id):
+        for curr_post in self.posts:
+            if id == curr_post['id']:
+                return curr_post
+        return False
 
 app = FastAPI()
 
@@ -48,3 +54,10 @@ def create_post(payLoad: Post):
     print(f"Added : {payload_dict}")
 
     return True
+
+
+@app.get("/posts/{id}")
+def get_post_by_id(id):
+    post = posts.find_post_by_id(int(id))
+    print(post)
+    return {"post_detail" : post}
