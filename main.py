@@ -20,6 +20,9 @@ class DataStore():
 
     def return_posts(self):
         return self.posts
+    
+    def curr_length(self):
+        return len(self.posts)
 
 app = FastAPI()
 
@@ -36,8 +39,9 @@ def create_post(payLoad: Post):
     # this is how we extract the data from body of the payload 
     # return {"title" : f"title is {payLoad['title']}", "content": f"Content is {payLoad['content']}"}
 
-    # using pydantic, simple printing does the job, we dont have to do like before |
+    # using pydantic, simple printing does the job, we dont have to do like before
     payload_dict = payLoad.model_dump()
+    payload_dict['id'] = posts.curr_length()
     # print(f"{payLoad.title}  {payLoad.content} {payLoad.isPublic} {payLoad.rating}")
 
     posts.add_post(payload_dict)
