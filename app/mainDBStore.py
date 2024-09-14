@@ -4,6 +4,7 @@ from fastapi.params import Body
 from pydantic import BaseModel
 
 import psycopg
+from psycopg.rows import dict_row
 
 class Post(BaseModel):
     title: str
@@ -41,12 +42,12 @@ conn_params = {
     "dbname": "postsDB",
     "user": "admin",
     "password": "admin",
-    "host": "localhost"  # Default is usually 5432
+    "host": "localhost"  
 }
 
 # setting up connection with the db
 try:
-    conn = psycopg.connect(**conn_params)
+    conn = psycopg.connect(**conn_params, row_factory = dict_row)
 
     cursor = conn.cursor()
     print('db success yea')
@@ -54,9 +55,12 @@ except Exception as error:
     print(f'failed. Error: {error}')
 
 
-@app.get("/")
-async def get_posts():
-    return {"posts_data" : postsObj.return_posts()}
+@app.get("/posts")
+def get_posts():
+    cursor.execute("""SELECT * FROM tb_posts """)
+    posts = cursor.fetchall()
+    print(posts)
+    return {"posts_data" : posts}
 
 
 @app.post("/create_post")
