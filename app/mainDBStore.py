@@ -11,7 +11,7 @@ class Post(BaseModel):
     content: str
     
     # optional default values --
-    isPublic: bool = False
+    is_published: bool = False
     rating: Optional[int] = None
 
 class DataStore():
@@ -50,7 +50,7 @@ try:
     conn = psycopg.connect(**conn_params, row_factory = dict_row)
 
     cursor = conn.cursor()
-    print('db success yea')
+    print('DB connection successful.')
 except Exception as error:
     print(f'failed. Error: {error}')
 
@@ -66,16 +66,14 @@ def get_posts():
 @app.post("/create_post")
 def create_post(payLoad: Post):
 
-    # this is how we extract the data from body of the payload 
-    # return {"title" : f"title is {payLoad['title']}", "content": f"Content is {payLoad['content']}"}
-
-    # using pydantic, simple printing does the job, we dont have to do like before
-    payload_dict = payLoad.model_dump()
-    payload_dict['id'] = postsObj.curr_length()
-    # print(f"{payLoad.title}  {payLoad.content} {payLoad.isPublic} {payLoad.rating}")
-
-    postsObj.add_post(payload_dict)
-    print(f"Added : {payload_dict}")
+    # f-strings are avoided because of security vulnerabilites(SQL injections)
+    cursor.execute("""INSERT INTO tb_posts (title, content, is_published, rating) VALUES (%s, %s, %s, %s) RETURNING * """, (payLoad.title, 
+                                                                                                        payLoad.content, 
+                                                                                                        payLoad.is_published, 
+                                                                                                        payLoad.rating))
+    new_post = cursor.fetchone()
+    conn.commit()
+    return {"data" : new_post}
 
     return True
 
