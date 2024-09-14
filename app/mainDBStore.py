@@ -95,16 +95,17 @@ def get_post_by_id(id : int):
 
 @app.delete("/posts/{id}", status_code = status.HTTP_204_NO_CONTENT)
 def delete_post_by_id(id : int):
-    post_to_del = postsObj.find_post_by_id(id)
+    
+    cursor.execute(""" DELETE FROM tb_posts WHERE id = %s RETURNING * """, (id,))
+    post_to_del = cursor.fetchone()
+    conn.commit()
+
     if post_to_del is None:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,
                             detail = f'post with id: {id} does not exist')
     
     print(f'Post ID to delete: {post_to_del['id']}')
 
-    index = postsObj.posts.index(post_to_del)
-    print(index)
-    postsObj.posts.pop(index)
     return Response(status_code = status.HTTP_204_NO_CONTENT)
 
 
