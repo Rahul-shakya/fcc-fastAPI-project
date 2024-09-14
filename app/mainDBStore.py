@@ -110,18 +110,18 @@ def delete_post_by_id(id : int):
 
 
 @app.put("/posts/{id}")
-def update_post_by_id(id: int, post: Post):
+def update_post_by_id(id: int, payLoad: Post):
     
-    print(post)
+    cursor.execute(""" UPDATE tb_posts SET title = %s, content = %s, is_published = %s, 
+                   rating = %s  WHERE id = %s RETURNING *""", (payLoad.title, payLoad.content, 
+                                                               payLoad.is_published, 
+                                                               payLoad.rating,
+                                                               id))
+    post_to_update = cursor.fetchone()
+    conn.commit()
 
-    post_to_update = postsObj.find_post_by_id(id)
     if post_to_update is None:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,
                             detail = f'post with id: {id} does not exist. Unable to update!')
     
-    post_dict = post.model_dump()
-    post_dict['id'] = post_to_update.get('id')    
-    
-    index = postsObj.posts.index(post_to_update)
-    postsObj.posts[index] = post_dict
-    return {'message' : 'post updated'}
+    return {'message' : post_to_update}
