@@ -79,18 +79,18 @@ def create_post(payLoad: Post):
 
 
 @app.get("/posts/{id}")
-def get_post_by_id(id : int, response: Response):
-    post = postsObj.find_post_by_id(id)
-    print(post)
+def get_post_by_id(id : int):
+    # this also works: with type casting it to str
+    # cursor.execute(""" SELECT * FROM tb_posts WHERE id = %s """, (str(id),))
+
+    cursor.execute(""" SELECT * FROM tb_posts WHERE id = %s """, (id,))
+    post = cursor.fetchone()
     if not post:
-        # clean way:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,
-                            detail = f'Post with id: {id} not found')
-    
-        # This is another not so clean way to do this:
-        # response.status_code = status.HTTP_404_NOT_FOUND
-        # return {'message' : f'post with id: {id} not found'}
-    return {"post_detail" : post}
+                        detail = f'Post with id: {id} not found')
+
+    print(post)
+    return {"post_data" : post}
 
 
 @app.delete("/posts/{id}", status_code = status.HTTP_204_NO_CONTENT)
