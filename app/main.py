@@ -3,6 +3,8 @@ from fastapi import FastAPI, Response, status, HTTPException
 from fastapi.params import Body
 from pydantic import BaseModel
 
+import psycopg
+
 class Post(BaseModel):
     title: str
     content: str
@@ -34,6 +36,23 @@ class DataStore():
 app = FastAPI()
 
 postsObj = DataStore()
+
+conn_params = {
+    "dbname": "postsDB",
+    "user": "admin",
+    "password": "admin",
+    "host": "localhost"  # Default is usually 5432
+}
+
+# setting up connection with the db
+try:
+    conn = psycopg.connect(**conn_params)
+
+    cursor = conn.cursor()
+    print('db success yea')
+except Exception as error:
+    print(f'failed. Error: {error}')
+
 
 @app.get("/")
 async def get_posts():
