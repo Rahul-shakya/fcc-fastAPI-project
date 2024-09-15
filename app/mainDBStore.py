@@ -9,6 +9,7 @@ from psycopg.rows import dict_row
 from sqlalchemy.orm import Session 
 from .database import engine, get_db
 
+# this line actually creates the tables through SQLAlchemy
 models.Base.metadata.create_all(bind = engine)
 
 
