@@ -1,10 +1,16 @@
 from typing import Optional
-from fastapi import FastAPI, Response, status, HTTPException
+from fastapi import FastAPI, Response, status, HTTPException, Depends
 from fastapi.params import Body
 from pydantic import BaseModel
-
+from . import models
 import psycopg
 from psycopg.rows import dict_row
+
+from sqlalchemy.orm import Session 
+from .database import engine, get_db
+
+models.Base.metadata.create_all(bind = engine)
+
 
 class Post(BaseModel):
     title: str
@@ -125,3 +131,8 @@ def update_post_by_id(id: int, payLoad: Post):
                             detail = f'post with id: {id} does not exist. Unable to update!')
     
     return {'message' : post_to_update}
+
+
+@app.get("/test/sqlalc")
+def test_posts(db: Session = Depends(get_db)):
+    return {'msg': 'success'}
