@@ -3,13 +3,14 @@ from fastapi.params import Body
 from . import models
 import psycopg
 from psycopg.rows import dict_row
+from typing import List
 
 from sqlalchemy.orm import Session 
 from .database import engine, get_db
 
-# we can also import like: from . import schemas(like for models), and then
+# we can also import like: from . import schemas(like for models above), and then
 # we'll have to write schemas.Post everywhere
-from .schemas import PostBase, PostCreate
+from .schemas import *
 
 # this line actually creates the tables through SQLAlchemy
 models.Base.metadata.create_all(bind = engine)
@@ -17,7 +18,8 @@ models.Base.metadata.create_all(bind = engine)
 
 app = FastAPI()
 
-@app.get("/posts")
+# return type is a list of Posts, hence response_model is a list of posts
+@app.get("/posts", response_model = List[Post])
 def get_posts(db: Session = Depends(get_db)):
 
     # implementing SQL through SQLAlchemy ORMs
@@ -29,7 +31,7 @@ def get_posts(db: Session = Depends(get_db)):
     return posts
 
 
-@app.post("/create_post", status_code = status.HTTP_201_CREATED)
+@app.post("/create_post", status_code = status.HTTP_201_CREATED, response_model = Post)
 def create_post(payLoad: PostCreate, db: Session = Depends(get_db)):
 
     # implementing code through SQLAlchemy ORMs
@@ -45,11 +47,10 @@ def create_post(payLoad: PostCreate, db: Session = Depends(get_db)):
 
     # refresh() to immediately get an up-to-date version of the object
     db.refresh(new_post)
-
     return new_post
 
 
-@app.get("/posts/{id}")
+@app.get("/posts/{id}", response_model = Post)
 def get_post_by_id(id : int, db: Session = Depends(get_db)):
 
     post = db.query(models.Post).filter(models.Post.id == id).first()
@@ -76,7 +77,7 @@ def delete_post_by_id(id : int, db: Session = Depends(get_db)):
     return Response(status_code = status.HTTP_204_NO_CONTENT)
 
 
-@app.put("/posts/{id}")
+@app.put("/posts/{id}", response_model = Post)
 def update_post_by_id(id: int, payLoad: PostCreate, db: Session = Depends(get_db)):
 
     post_query = db.query(models.Post).filter(models.Post.id == id)

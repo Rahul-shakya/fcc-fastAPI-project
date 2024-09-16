@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
 
 # this is the pydantic schema
 
@@ -14,3 +15,16 @@ class PostBase(BaseModel):
 
 class PostCreate(PostBase):
     pass
+
+# response schema
+class Post(PostBase):
+    id: int
+    created_at: datetime
+
+    class Config:
+
+        # this is deprecated
+        # orm_mode = True
+
+        # this is new change
+        from_attributes = True
