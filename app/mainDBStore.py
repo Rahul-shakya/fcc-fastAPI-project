@@ -102,17 +102,21 @@ def get_post_by_id(id : int, db: Session = Depends(get_db)):
 
 
 @app.delete("/posts/{id}", status_code = status.HTTP_204_NO_CONTENT)
-def delete_post_by_id(id : int):
+def delete_post_by_id(id : int, db: Session = Depends(get_db)):
     
-    cursor.execute(""" DELETE FROM tb_posts WHERE id = %s RETURNING * """, (id,))
-    post_to_del = cursor.fetchone()
-    conn.commit()
+    # old deprecated SQL code
+    # cursor.execute(""" DELETE FROM tb_posts WHERE id = %s RETURNING * """, (id,))
+    # post_to_del = cursor.fetchone()
+    # conn.commit()
 
-    if post_to_del is None:
+    post_to_del = db.query(models.Post).filter(models.Post.id == id)
+
+    if post_to_del.first() is None:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,
                             detail = f'post with id: {id} does not exist')
     
-    print(f'Post ID to delete: {post_to_del['id']}')
+    post_to_del.delete(synchronize_session = False)
+    db.commit()
 
     return Response(status_code = status.HTTP_204_NO_CONTENT)
 
