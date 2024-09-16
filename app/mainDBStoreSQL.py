@@ -34,15 +34,16 @@ except Exception as error:
 
 
 @app.get("/posts")
-def get_posts(db: Session = Depends(get_db)):
+def get_posts():
 
     # without ORMs, directly through SQL statements
     cursor.execute("""SELECT * FROM tb_posts """)
     posts = cursor.fetchall()
+    return {"posts_data" : posts}
 
 
 @app.post("/create_post", status_code = status.HTTP_201_CREATED)
-def create_post(payLoad: PostCreate, db: Session = Depends(get_db)):
+def create_post(payLoad: PostCreate):
 
     # old deprecated SQL code
     # f-strings are avoided because of security vulnerabilites(SQL injections)
@@ -52,16 +53,11 @@ def create_post(payLoad: PostCreate, db: Session = Depends(get_db)):
                                                                                                         payLoad.rating))
     new_post = cursor.fetchone()
     conn.commit()
-
-    # implementing code through SQLAlchemy ORMs
-    new_post = models.Post(title = payLoad.title, content = payLoad.content, 
-                           is_published = payLoad.is_published, rating = payLoad.rating)
-
     return {"data" : new_post}
 
 
 @app.get("/posts/{id}")
-def get_post_by_id(id : int, db: Session = Depends(get_db)):
+def get_post_by_id(id : int):
 
     # this also works: with type casting it to str
     # cursor.execute(""" SELECT * FROM tb_posts WHERE id = %s """, (str(id),))
@@ -77,13 +73,13 @@ def get_post_by_id(id : int, db: Session = Depends(get_db)):
 
 
 @app.delete("/posts/{id}", status_code = status.HTTP_204_NO_CONTENT)
-def delete_post_by_id(id : int, db: Session = Depends(get_db)):
+def delete_post_by_id(id : int):
     
     cursor.execute(""" DELETE FROM tb_posts WHERE id = %s RETURNING * """, (id,))
     post_to_del = cursor.fetchone()
     conn.commit()
 
-    if post_to_del.first() is None:
+    if post_to_del is None:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,
                             detail = f'post with id: {id} does not exist')
     
@@ -91,7 +87,7 @@ def delete_post_by_id(id : int, db: Session = Depends(get_db)):
 
 
 @app.put("/posts/{id}")
-def update_post_by_id(id: int, payLoad: PostCreate, db: Session = Depends(get_db)):
+def update_post_by_id(id: int, payLoad: PostCreate):
 
     # old deprecated SQL code
     cursor.execute(""" UPDATE tb_posts SET title = %s, content = %s, is_published = %s, 
