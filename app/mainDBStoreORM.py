@@ -26,7 +26,7 @@ def get_posts(db: Session = Depends(get_db)):
     # while printing, it prints the object [<app.models.Post object at 0x000001D5D7537200>, <app.models.Post object at 0x000001D5D....]
     # but while returning posts, proper data is displayed in Postman
     print(posts)
-    return {"posts_data" : posts}
+    return posts
 
 
 @app.post("/create_post", status_code = status.HTTP_201_CREATED)
@@ -46,7 +46,7 @@ def create_post(payLoad: PostCreate, db: Session = Depends(get_db)):
     # refresh() to immediately get an up-to-date version of the object
     db.refresh(new_post)
 
-    return {"data" : new_post}
+    return new_post
 
 
 @app.get("/posts/{id}")
@@ -58,7 +58,7 @@ def get_post_by_id(id : int, db: Session = Depends(get_db)):
                         detail = f'Post with id: {id} not found')
     # it prints the object, not the data
     print(post)
-    return {"post_data" : post}
+    return post
 
 
 @app.delete("/posts/{id}", status_code = status.HTTP_204_NO_CONTENT)
@@ -88,4 +88,4 @@ def update_post_by_id(id: int, payLoad: PostCreate, db: Session = Depends(get_db
     
     post_query.update(payLoad.model_dump())
     db.commit()
-    return {'message' : post_query.first()}
+    return post_query.first()
