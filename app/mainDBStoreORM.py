@@ -12,6 +12,9 @@ from .database import engine, get_db
 # we'll have to write schemas.Post everywhere
 from .schemas import *
 
+# importing error
+from sqlalchemy.exc import IntegrityError
+
 # this line actually creates the tables through SQLAlchemy
 models.Base.metadata.create_all(bind = engine)
 
@@ -90,3 +93,25 @@ def update_post_by_id(id: int, payLoad: PostCreate, db: Session = Depends(get_db
     post_query.update(payLoad.model_dump())
     db.commit()
     return post_query.first()
+
+
+#                                                                        #
+# ------------------------------ USER -----------------------------------#
+#                                                                        #
+
+@app.post("/users", status_code = status.HTTP_201_CREATED, response_model = UserOut)
+def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    new_user = models.User(**user.model_dump())
+
+    try:
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        
+    except IntegrityError as e:
+        raise HTTPException(status_code = status.HTTP_400_BAD_REQUEST, detail="Email already exists.")
+    except Exception as e:
+        raise HTTPException(status_code = status.HTTP_500_INTERNAL_SERVER_ERROR, detail = 'Unexpected error.')
+
+
+    return new_user

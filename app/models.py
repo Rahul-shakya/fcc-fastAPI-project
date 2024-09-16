@@ -9,7 +9,7 @@ from sqlalchemy.sql.expression import text
 class Post(Base):
     __tablename__ = 'tb_posts'
 
-    id = Column(Integer, primary_key = True, nullable = False)
+    id = Column(Integer, primary_key = True, nullable = False, autoincrement = True)
     title = Column(String, nullable = False)
     content = Column(String, nullable = False)
     is_published = Column(Boolean, server_default = 'False', nullable = False)
@@ -20,7 +20,7 @@ class Post(Base):
 class User(Base):
     __tablename__ = 'users'
 
-    id = Column(Integer, primary_key = True, nullable = False)
+    id = Column(Integer, primary_key = True, nullable = False, autoincrement = True)
     user_name = Column(String, nullable = False)
     email = Column(String, nullable = False, unique = True)
     password = Column(String, nullable = False)
