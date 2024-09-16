@@ -1,7 +1,5 @@
-from typing import Optional
 from fastapi import FastAPI, Response, status, HTTPException, Depends
 from fastapi.params import Body
-from pydantic import BaseModel
 from . import models
 import psycopg
 from psycopg.rows import dict_row
@@ -9,35 +7,32 @@ from psycopg.rows import dict_row
 from sqlalchemy.orm import Session 
 from .database import engine, get_db
 
+# we can also import like: from . import schemas(like for models), and then
+# we'll have to write schemas.Post everywhere
+from .schemas import PostBase, PostCreate
+
 # this line actually creates the tables through SQLAlchemy
 models.Base.metadata.create_all(bind = engine)
 
 
-class Post(BaseModel):
-    title: str
-    content: str
-    
-    # optional default values --
-    is_published: bool = False
-    rating: Optional[int] = None
-
 app = FastAPI()
 
-conn_params = {
-    "dbname": "postsDB",
-    "user": "admin",
-    "password": "admin",
-    "host": "localhost"  
-}
+# deprecated code:
+# conn_params = {
+#     "dbname": "postsDB",
+#     "user": "admin",
+#     "password": "admin",
+#     "host": "localhost"  
+# }
 
-# setting up connection with the db
-try:
-    conn = psycopg.connect(**conn_params, row_factory = dict_row)
+# # setting up connection with the db
+# try:
+#     conn = psycopg.connect(**conn_params, row_factory = dict_row)
 
-    cursor = conn.cursor()
-    print('DB connection successful.')
-except Exception as error:
-    print(f'failed. Error: {error}')
+#     cursor = conn.cursor()
+#     print('DB connection successful.')
+# except Exception as error:
+#     print(f'failed. Error: {error}')
 
 
 @app.get("/posts")
@@ -54,7 +49,7 @@ def get_posts(db: Session = Depends(get_db)):
 
 
 @app.post("/create_post", status_code = status.HTTP_201_CREATED)
-def create_post(payLoad: Post, db: Session = Depends(get_db)):
+def create_post(payLoad: PostCreate, db: Session = Depends(get_db)):
 
     # old deprecated SQL code
     # f-strings are avoided because of security vulnerabilites(SQL injections)
@@ -122,7 +117,7 @@ def delete_post_by_id(id : int, db: Session = Depends(get_db)):
 
 
 @app.put("/posts/{id}")
-def update_post_by_id(id: int, payLoad: Post, db: Session = Depends(get_db)):
+def update_post_by_id(id: int, payLoad: PostCreate, db: Session = Depends(get_db)):
 
     # old deprecated SQL code
     # cursor.execute(""" UPDATE tb_posts SET title = %s, content = %s, is_published = %s, 
