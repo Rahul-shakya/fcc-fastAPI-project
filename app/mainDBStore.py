@@ -21,29 +21,7 @@ class Post(BaseModel):
     is_published: bool = False
     rating: Optional[int] = None
 
-class DataStore():
-    def __init__(self):
-        self.posts = []
-
-    def add_post(self, post):
-        self.posts.append(post)
-
-    def return_posts(self):
-        return self.posts
-    
-    def curr_length(self):
-        return len(self.posts)
-    
-    def find_post_by_id(self, id):
-        for curr_post in self.posts:
-            print(curr_post)
-            if id == curr_post['id']:
-                return curr_post
-        return None
-
 app = FastAPI()
-
-postsObj = DataStore()
 
 conn_params = {
     "dbname": "postsDB",
