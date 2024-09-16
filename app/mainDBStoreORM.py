@@ -22,6 +22,9 @@ def get_posts(db: Session = Depends(get_db)):
 
     # implementing SQL through SQLAlchemy ORMs
     posts = db.query(models.Post).all()
+
+    # while printing, it prints the object [<app.models.Post object at 0x000001D5D7537200>, <app.models.Post object at 0x000001D5D....]
+    # but while returning posts, proper data is displayed in Postman
     print(posts)
     return {"posts_data" : posts}
 
@@ -32,7 +35,7 @@ def create_post(payLoad: PostCreate, db: Session = Depends(get_db)):
     # implementing code through SQLAlchemy ORMs
     # new_post = models.Post(title = payLoad.title, content = payLoad.content, 
     #                        is_published = payLoad.is_published, rating = payLoad.rating)
-    
+
     # A better way to create new_post by dict unpacking
     new_post = models.Post(**payLoad.model_dump())
 
