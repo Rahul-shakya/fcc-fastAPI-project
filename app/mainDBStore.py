@@ -56,7 +56,7 @@ def get_posts(db: Session = Depends(get_db)):
 @app.post("/create_post", status_code = status.HTTP_201_CREATED)
 def create_post(payLoad: Post, db: Session = Depends(get_db)):
 
-    # old deprectae SQL code
+    # old deprecated SQL code
     # f-strings are avoided because of security vulnerabilites(SQL injections)
     # cursor.execute("""INSERT INTO tb_posts (title, content, is_published, rating) VALUES (%s, %s, %s, %s) RETURNING * """, (payLoad.title, 
     #                                                                                                     payLoad.content, 
@@ -66,31 +66,37 @@ def create_post(payLoad: Post, db: Session = Depends(get_db)):
     # conn.commit()
 
     # implementing code through SQLAlchemy ORMs
-    new_post = models.Post(title = payLoad.title, content = payLoad.content, 
-                           is_published = payLoad.is_published, rating = payLoad.rating)
+    # new_post = models.Post(title = payLoad.title, content = payLoad.content, 
+    #                        is_published = payLoad.is_published, rating = payLoad.rating)
+
+    # A better way to create new_post by dict unpacking
+    new_post = models.Post(**payLoad.model_dump())
 
     # commmit equivalent of SQL:
     db.add(new_post)
     db.commit()
 
+    # refresh() to immediately get an up-to-date version of the object
     db.refresh(new_post)
 
     return {"data" : new_post}
 
-    return True
-
 
 @app.get("/posts/{id}")
-def get_post_by_id(id : int):
+def get_post_by_id(id : int, db: Session = Depends(get_db)):
+
+    # old deprecated SQL code
     # this also works: with type casting it to str
     # cursor.execute(""" SELECT * FROM tb_posts WHERE id = %s """, (str(id),))
 
-    cursor.execute(""" SELECT * FROM tb_posts WHERE id = %s """, (id,))
-    post = cursor.fetchone()
+    # cursor.execute(""" SELECT * FROM tb_posts WHERE id = %s """, (id,))
+    # post = cursor.fetchone()
+
+    post = db.query(models.Post).filter(models.Post.id == id).first()
     if not post:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,
                         detail = f'Post with id: {id} not found')
-
+    # it prints the object, not the data
     print(post)
     return {"post_data" : post}
 
