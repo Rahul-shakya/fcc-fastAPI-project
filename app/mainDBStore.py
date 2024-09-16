@@ -122,25 +122,24 @@ def delete_post_by_id(id : int, db: Session = Depends(get_db)):
 
 
 @app.put("/posts/{id}")
-def update_post_by_id(id: int, payLoad: Post):
-    
-    cursor.execute(""" UPDATE tb_posts SET title = %s, content = %s, is_published = %s, 
-                   rating = %s  WHERE id = %s RETURNING *""", (payLoad.title, payLoad.content, 
-                                                               payLoad.is_published, 
-                                                               payLoad.rating,
-                                                               id))
-    post_to_update = cursor.fetchone()
-    conn.commit()
+def update_post_by_id(id: int, payLoad: Post, db: Session = Depends(get_db)):
+
+    # old deprecated SQL code
+    # cursor.execute(""" UPDATE tb_posts SET title = %s, content = %s, is_published = %s, 
+    #                rating = %s  WHERE id = %s RETURNING *""", (payLoad.title, payLoad.content, 
+    #                                                            payLoad.is_published, 
+    #                                                            payLoad.rating,
+    #                                                            id))
+    # post_to_update = cursor.fetchone()
+    # conn.commit()
+
+    post_query = db.query(models.Post).filter(models.Post.id == id)
+    post_to_update = post_query.first()
 
     if post_to_update is None:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,
                             detail = f'post with id: {id} does not exist. Unable to update!')
     
-    return {'message' : post_to_update}
-
-
-@app.get("/test/sqlalc")
-def test_posts(db: Session = Depends(get_db)):
-
-    posts = db.query(models.Post).all()
-    return {'data': posts}
+    post_query.update(payLoad.model_dump())
+    db.commit()
+    return {'message' : post_query.first()}
