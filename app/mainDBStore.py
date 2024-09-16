@@ -41,23 +41,40 @@ except Exception as error:
 
 
 @app.get("/posts")
-def get_posts():
-    cursor.execute("""SELECT * FROM tb_posts """)
-    posts = cursor.fetchall()
+def get_posts(db: Session = Depends(get_db)):
+
+    # without ORMs, directly through SQL statements
+    # cursor.execute("""SELECT * FROM tb_posts """)
+    # posts = cursor.fetchall()
+
+    # implementing SQL through SQLAlchemy ORMs
+    posts = db.query(models.Post).all()
     print(posts)
     return {"posts_data" : posts}
 
 
-@app.post("/create_post")
-def create_post(payLoad: Post):
+@app.post("/create_post", status_code = status.HTTP_201_CREATED)
+def create_post(payLoad: Post, db: Session = Depends(get_db)):
 
+    # old deprectae SQL code
     # f-strings are avoided because of security vulnerabilites(SQL injections)
-    cursor.execute("""INSERT INTO tb_posts (title, content, is_published, rating) VALUES (%s, %s, %s, %s) RETURNING * """, (payLoad.title, 
-                                                                                                        payLoad.content, 
-                                                                                                        payLoad.is_published, 
-                                                                                                        payLoad.rating))
-    new_post = cursor.fetchone()
-    conn.commit()
+    # cursor.execute("""INSERT INTO tb_posts (title, content, is_published, rating) VALUES (%s, %s, %s, %s) RETURNING * """, (payLoad.title, 
+    #                                                                                                     payLoad.content, 
+    #                                                                                                     payLoad.is_published, 
+    #                                                                                                     payLoad.rating))
+    # new_post = cursor.fetchone()
+    # conn.commit()
+
+    # implementing code through SQLAlchemy ORMs
+    new_post = models.Post(title = payLoad.title, content = payLoad.content, 
+                           is_published = payLoad.is_published, rating = payLoad.rating)
+
+    # commmit equivalent of SQL:
+    db.add(new_post)
+    db.commit()
+
+    db.refresh(new_post)
+
     return {"data" : new_post}
 
     return True
@@ -114,4 +131,6 @@ def update_post_by_id(id: int, payLoad: Post):
 
 @app.get("/test/sqlalc")
 def test_posts(db: Session = Depends(get_db)):
-    return {'msg': 'success'}
+
+    posts = db.query(models.Post).all()
+    return {'data': posts}
