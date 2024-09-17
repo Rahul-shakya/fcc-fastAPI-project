@@ -46,6 +46,7 @@ class UserCreate(BaseModel):
 # only id and email
 class UserOut(BaseModel):
     id: int
+    user_name: str
     email: EmailStr
     created_at: datetime
     
