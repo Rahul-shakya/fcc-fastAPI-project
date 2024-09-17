@@ -12,12 +12,17 @@ from .database import engine, get_db
 # we'll have to write schemas.Post everywhere
 from .schemas import *
 
+# importing passlib for encryption of passwords
+from passlib.context import CryptContext
+
 # importing error
 from sqlalchemy.exc import IntegrityError
 
 # this line actually creates the tables through SQLAlchemy
 models.Base.metadata.create_all(bind = engine)
 
+# telling passlib the default hashing algo which is bcrypt
+pwd_context = CryptContext(schemes = ['bcrypt'], deprecated = 'auto')
 
 app = FastAPI()
 
@@ -99,9 +104,14 @@ def update_post_by_id(id: int, payLoad: PostCreate, db: Session = Depends(get_db
 # ------------------------------ USER -----------------------------------#
 #                                                                        #
 
+# USER REGISTRATION
 @app.post("/users", status_code = status.HTTP_201_CREATED, response_model = UserOut)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     new_user = models.User(**user.model_dump())
+
+    # hash the password
+    password_hash = pwd_context.hash(user.password)
+    new_user.password = password_hash
 
     try:
         db.add(new_user)
