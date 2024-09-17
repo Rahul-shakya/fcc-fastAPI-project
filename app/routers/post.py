@@ -13,7 +13,8 @@ from sqlalchemy.orm import Session
 from ..database import engine, get_db
 
 router = APIRouter(
-    prefix = "/posts"
+    prefix = "/posts",
+    tags = ['Posts']
 )
 
 
