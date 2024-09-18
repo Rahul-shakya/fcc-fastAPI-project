@@ -20,7 +20,7 @@ router = APIRouter(
 
 # return type is a list of Posts, hence response_model is a list of posts
 @router.get("/", response_model = List[schemas.Post])
-def get_posts(db: Session = Depends(get_db), user_id: str = Depends(oauth2.get_current_user)):
+def get_posts(db: Session = Depends(get_db), user_data: str = Depends(oauth2.get_current_user)):
 
     # implementing SQL through SQLAlchemy ORMs
     posts = db.query(models.Post).all()
@@ -32,7 +32,7 @@ def get_posts(db: Session = Depends(get_db), user_id: str = Depends(oauth2.get_c
 
 
 @router.post("/", status_code = status.HTTP_201_CREATED, response_model = schemas.Post)
-def create_post(payLoad: schemas.PostCreate, db: Session = Depends(get_db), user_id: str = Depends(oauth2.get_current_user)):
+def create_post(payLoad: schemas.PostCreate, db: Session = Depends(get_db), user_data: str = Depends(oauth2.get_current_user)):
 
     # implementing code through SQLAlchemy ORMs
     # new_post = models.Post(title = payLoad.title, content = payLoad.content, 
@@ -48,14 +48,19 @@ def create_post(payLoad: schemas.PostCreate, db: Session = Depends(get_db), user
     # refresh() to immediately get an up-to-date version of the object
     db.refresh(new_post)
     
-    # type of user_id is <class 'app.schemas.TokenData'>
-    print(user_id)
+    # type of user_data is <class 'app.schemas.TokenData'>
+    user_id = user_data.id
+
+    # testing the values 
+    print(user_id)   # o/p 37
+    print(user_data.email)   # o/p test@gmail.com
+    print(user_data)  # o/p <app.models.User object at 0x00000177742ADA90>
 
     return new_post
 
 
 @router.get("/{id}", response_model = schemas.Post)
-def get_post_by_id(id : int, db: Session = Depends(get_db), user_id: str = Depends(oauth2.get_current_user)):
+def get_post_by_id(id : int, db: Session = Depends(get_db), user_data: str = Depends(oauth2.get_current_user)):
 
     post = db.query(models.Post).filter(models.Post.id == id).first()
     if not post:
@@ -82,7 +87,7 @@ def delete_post_by_id(id : int, db: Session = Depends(get_db), user_id: str = De
 
 
 @router.put("/{id}", response_model = schemas.Post)
-def update_post_by_id(id: int, payLoad: schemas.PostCreate, db: Session = Depends(get_db), user_id: str = Depends(oauth2.get_current_user)):
+def update_post_by_id(id: int, payLoad: schemas.PostCreate, db: Session = Depends(get_db), user_data: str = Depends(oauth2.get_current_user)):
 
     post_query = db.query(models.Post).filter(models.Post.id == id)
     post_to_update = post_query.first()

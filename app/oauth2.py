@@ -2,7 +2,8 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
 from fastapi import Depends, status, HTTPException
 from fastapi.security import OAuth2PasswordBearer
-from . import schemas
+from . import schemas, database, models
+from sqlalchemy.orm import Session
 
 # tokenUrl takes the endpoint of the login API
 oauth2_schema = OAuth2PasswordBearer(tokenUrl = 'login')
@@ -14,7 +15,7 @@ oauth2_schema = OAuth2PasswordBearer(tokenUrl = 'login')
 
 SECRET_KEY = "a3498d7dbdb98400f5532f588d3ccf317c59e84674888b0ebd8be4f9115313c7"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 def create_access_token(data: dict):
     data_to_encode = data.copy()
@@ -45,9 +46,14 @@ def verify_access_token(token: str, credentials_exception):
     
     return token_data
     
-
-def get_current_user(token: str = Depends(oauth2_schema)):
+# it extracts the user_name and email from the token 
+def get_current_user(token: str = Depends(oauth2_schema), db: Session = Depends(database.get_db)):
     credentials_exception = HTTPException(status_code = status.HTTP_401_UNAUTHORIZED, detail = 'Could not verify the creds',
                                          headers = {'WWW-Authenticate': 'Bearer'})
     
-    return verify_access_token(token, credentials_exception)
+    # print(token) gives user_id='37' user_email='test@gmail.com'
+    token = verify_access_token(token, credentials_exception)
+    user = db.query(models.User).filter(models.User.id == token.user_id).first()
+    print(user)
+    
+    return user
