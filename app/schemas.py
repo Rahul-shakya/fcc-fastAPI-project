@@ -12,7 +12,9 @@ class PostBase(BaseModel):
     # optional default values --
     rating: Optional[int] = None
 
-
+# we wont be adding user_id in PostCreate because we will get the
+# user_id by application code logic rather than sending it in the
+# body
 class PostCreate(PostBase):
     pass
 
@@ -20,6 +22,9 @@ class PostCreate(PostBase):
 class Post(PostBase):
     id: int
     created_at: datetime
+
+    # added foriegn key column user_id
+    user_id: int
 
     class Config:
 
