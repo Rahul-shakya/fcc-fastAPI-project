@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, status, HTTPException, Response
 from sqlalchemy.orm import Session
+from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from ..schemas import UserLogin
 
 # Or we can do from .. import database, and then write Depends(database.get_db)
@@ -13,9 +14,10 @@ router = APIRouter(
 )
 
 @router.post("/login")
-def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
+def login(user_credentials: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     
-    user = db.query(models.User).filter(models.User.email == user_credentials.email).first()
+    # OAuth2PasswordRequestForm stores data(username and password) in a dict format
+    user = db.query(models.User).filter(models.User.email == user_credentials.username).first()
 
     if not user:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'Invalid credentials')
@@ -25,9 +27,7 @@ def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
     if not utils.verify(user_credentials.password, user.password):
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = 'Invalid credentials')
     
-    access_token = oauth2.create_access_token(data = {'user_id' : user.id, 'user_email' : user.email})
     # create a token after sucessful authentication
-    return {'token' : access_token, "token_type" : "bearer"}
+    access_token = oauth2.create_access_token(data = {'user_id' : user.id, 'user_email' : user.email})
     
-# eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozNywidXNlcl9lbWFpbCI6InRlc3RAZ21haWwuY29tIiwiZXhwIjoxNzI2NTk1NTQ0fQ.PStMc2fzSuvlk-eIWztvYF29TqKBLgQTp3cG7s2ytH8
-# eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozNywiZXhwIjoxNzI2NTk1NTc2fQ.BKens4G8i8p1fnhGL7i-eQgbjFs6a2XAhJtJsL1K-L8
+    return {'token' : access_token, "token_type" : "bearer"}
