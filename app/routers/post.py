@@ -38,7 +38,8 @@ def create_post(payLoad: schemas.PostCreate, db: Session = Depends(get_db), user
     # new_post = models.Post(title = payLoad.title, content = payLoad.content, 
     #                        is_published = payLoad.is_published, rating = payLoad.rating)
 
-    # type of user_data is <class 'app.schemas.TokenData'>
+    # type of user_data is <class 'app.schemas.TokenData'>. It contains all the details of the user
+    
 
     curr_user_id = user_data.id
     # A better way to create new_post by dict unpacking
@@ -73,15 +74,19 @@ def get_post_by_id(id : int, db: Session = Depends(get_db), user_data: str = Dep
 
 
 @router.delete("/{id}", status_code = status.HTTP_204_NO_CONTENT)
-def delete_post_by_id(id : int, db: Session = Depends(get_db), user_id: str = Depends(oauth2.get_current_user)):
+def delete_post_by_id(id : int, db: Session = Depends(get_db), user_data: str = Depends(oauth2.get_current_user)):
 
-    post_to_del = db.query(models.Post).filter(models.Post.id == id)
+    post_query = db.query(models.Post).filter(models.Post.id == id)
+    post_to_del = post_query.first()
 
-    if post_to_del.first() is None:
+    if post_to_del is None:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,
                             detail = f'post with id: {id} does not exist')
     
-    post_to_del.delete(synchronize_session = False)
+    if post_to_del.user_id != user_data.id:
+        raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail = 'Not authorized to perform this action')
+
+    post_query.delete(synchronize_session = False)
     db.commit()
 
     return Response(status_code = status.HTTP_204_NO_CONTENT)
@@ -96,6 +101,9 @@ def update_post_by_id(id: int, payLoad: schemas.PostCreate, db: Session = Depend
     if post_to_update is None:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,
                             detail = f'post with id: {id} does not exist. Unable to update!')
+    
+    if post_to_update.user_id != user_data.id:
+        raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail = 'Not authorized to perform this action')
     
     post_query.update(payLoad.model_dump())
     db.commit()
