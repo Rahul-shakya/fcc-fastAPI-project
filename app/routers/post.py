@@ -20,10 +20,11 @@ router = APIRouter(
 
 # return type is a list of Posts, hence response_model is a list of posts
 @router.get("/", response_model = List[schemas.Post])
-def get_posts(db: Session = Depends(get_db), user_data: str = Depends(oauth2.get_current_user)):
+def get_posts(db: Session = Depends(get_db), user_data: str = Depends(oauth2.get_current_user),
+              limit: int = 5):
 
     # implementing SQL through SQLAlchemy ORMs
-    posts = db.query(models.Post).all()
+    posts = db.query(models.Post).limit(limit).all()
 
     # if we want to fetch the posts of logged in user only
     # posts = db.query(models.Post).filter(models.Post.user_id == user_data.id).all()
