@@ -13,6 +13,23 @@ class PostBase(BaseModel):
     rating: Optional[int] = None
 
 
+# we dont want to send password back to the user hence including 
+# only id and email
+class UserOut(BaseModel):
+    id: int
+    user_name: str
+    email: EmailStr
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+
 # we wont be adding user_id in PostCreate because we will get the
 # user_id by application code logic rather than sending it in the
 # body
@@ -26,6 +43,7 @@ class Post(PostBase):
 
     # added foriegn key column user_id
     user_id: int
+    user: UserOut 
 
     class Config:
 
@@ -48,21 +66,6 @@ class UserCreate(BaseModel):
     # send in the body of the request.
 
 
-# we dont want to send password back to the user hence including 
-# only id and email
-class UserOut(BaseModel):
-    id: int
-    user_name: str
-    email: EmailStr
-    created_at: datetime
-    
-    class Config:
-        from_attributes = True
-
-
-class UserLogin(BaseModel):
-    email: EmailStr
-    password: str
 
 
 class Token(BaseModel):

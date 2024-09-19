@@ -25,6 +25,9 @@ def get_posts(db: Session = Depends(get_db), user_data: str = Depends(oauth2.get
     # implementing SQL through SQLAlchemy ORMs
     posts = db.query(models.Post).all()
 
+    # if we want to fetch the posts of logged in user only
+    # posts = db.query(models.Post).filter(models.Post.user_id == user_data.id).all()
+
     # while printing, it prints the object [<app.models.Post object at 0x000001D5D7537200>, <app.models.Post object at 0x000001D5D....]
     # but while returning posts, proper data is displayed in Postman
     print(posts)
@@ -68,6 +71,11 @@ def get_post_by_id(id : int, db: Session = Depends(get_db), user_data: str = Dep
     if not post:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,
                         detail = f'Post with id: {id} not found')
+    
+    # if we want the funtionality of: only fetch post owned by the logged in user
+    # if post.user_id != user_data.id:
+    #     raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail = 'Not authorized to perform this action')
+    
     # it prints the object, not the data
     print(post)
     return post
@@ -83,6 +91,7 @@ def delete_post_by_id(id : int, db: Session = Depends(get_db), user_data: str = 
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,
                             detail = f'post with id: {id} does not exist')
     
+    # only delete posts owned by the logged in user
     if post_to_del.user_id != user_data.id:
         raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail = 'Not authorized to perform this action')
 
@@ -102,6 +111,7 @@ def update_post_by_id(id: int, payLoad: schemas.PostCreate, db: Session = Depend
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,
                             detail = f'post with id: {id} does not exist. Unable to update!')
     
+    # only update posts owned by the logged in user
     if post_to_update.user_id != user_data.id:
         raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail = 'Not authorized to perform this action')
     
