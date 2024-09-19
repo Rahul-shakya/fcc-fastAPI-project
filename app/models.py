@@ -16,6 +16,7 @@ class Post(Base):
     rating = Column(Integer, nullable = True)
     created_at = Column(TIMESTAMP(timezone = True), nullable = False, server_default = text('now()'))
 
+    # foreign key
     user_id = Column(Integer, ForeignKey('users.id', ondelete = 'CASCADE'), nullable = False)
 
 

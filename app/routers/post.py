@@ -38,8 +38,12 @@ def create_post(payLoad: schemas.PostCreate, db: Session = Depends(get_db), user
     # new_post = models.Post(title = payLoad.title, content = payLoad.content, 
     #                        is_published = payLoad.is_published, rating = payLoad.rating)
 
+    # type of user_data is <class 'app.schemas.TokenData'>
+
+    curr_user_id = user_data.id
     # A better way to create new_post by dict unpacking
-    new_post = models.Post(**payLoad.model_dump())
+    # models.Post is the SQL Alchemy model
+    new_post = models.Post(user_id = curr_user_id, **payLoad.model_dump())
 
     # commmit equivalent of SQL:
     db.add(new_post)
@@ -48,11 +52,8 @@ def create_post(payLoad: schemas.PostCreate, db: Session = Depends(get_db), user
     # refresh() to immediately get an up-to-date version of the object
     db.refresh(new_post)
     
-    # type of user_data is <class 'app.schemas.TokenData'>
-    user_id = user_data.id
-
     # testing the values 
-    print(user_id)   # o/p 37
+    print(curr_user_id)   # o/p 37
     print(user_data.email)   # o/p test@gmail.com
     print(user_data)  # o/p <app.models.User object at 0x00000177742ADA90>
 

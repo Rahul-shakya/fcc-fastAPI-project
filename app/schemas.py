@@ -12,6 +12,7 @@ class PostBase(BaseModel):
     # optional default values --
     rating: Optional[int] = None
 
+
 # we wont be adding user_id in PostCreate because we will get the
 # user_id by application code logic rather than sending it in the
 # body
