@@ -2,9 +2,11 @@
 # ------------------------------ POST -----------------------------------#
 #                                                                        #
 
+import string
+from tokenize import String
 from .. import models, schemas, oauth2
 from fastapi import Response, status, HTTPException, Depends, APIRouter
-from typing import List
+from typing import List, Optional
 
 # importing error
 from sqlalchemy.exc import IntegrityError
@@ -19,12 +21,15 @@ router = APIRouter(
 
 
 # return type is a list of Posts, hence response_model is a list of posts
+
+# search: Optional[str] = '' has a default empty string because Non-default arguments must appear 
+# before default arguments in the parameter list.
 @router.get("/", response_model = List[schemas.Post])
 def get_posts(db: Session = Depends(get_db), user_data: str = Depends(oauth2.get_current_user),
-              limit: int = 5, skip: int = 0):
+              limit: int = 5, skip: int = 0, search: Optional[str] = ''):
 
     # implementing SQL through SQLAlchemy ORMs
-    posts = db.query(models.Post).limit(limit).offset(skip).all()
+    posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
 
     # if we want to fetch the posts of logged in user only
     # posts = db.query(models.Post).filter(models.Post.user_id == user_data.id).all()
