@@ -2,8 +2,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# format is "postgresql://user:password@postgresserver/dbname" 
-SQLALCHEMY_DB_URL = 'postgresql://admin:admin@localhost/postsDB'
+from .config import settings
+
+# format is "postgresql://user:password@postgresserver:port/dbname" 
+SQLALCHEMY_DB_URL = f'postgresql://{settings.db_username}:{settings.db_password}@{settings.db_hostname}:{settings.db_port}/{settings.db_name}'
 
 engine = create_engine(SQLALCHEMY_DB_URL)
 
