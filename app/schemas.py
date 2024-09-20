@@ -1,6 +1,8 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 from datetime import datetime
+from pydantic.types import conint
+from typing_extensions import Annotated
 
 # this is the pydantic schema
 
@@ -75,3 +77,11 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     user_id: Optional[str] = None
     user_email: Optional[str] = None
+
+
+class Like(BaseModel):
+    post_id: int
+
+    # this allows direction to only hold values >= 0 and <= 1 
+    # TODO: Find an enum solution
+    direction: Annotated[int, Field(strict=True, le = 1, ge = 0)]

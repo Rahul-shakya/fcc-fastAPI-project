@@ -37,7 +37,7 @@ class User(Base):
 class Like(Base):
     __tablename__ = 'likes'
 
-    user_id = Column(Integer, ForeignKey('users.id', ondelete = 'CASCADE'), primary_key = True, nullable = False,)
     post_id = Column(Integer, ForeignKey('tb_posts.id', ondelete = 'CASCADE'), primary_key = True, nullable = False)
+    user_id = Column(Integer, ForeignKey('users.id', ondelete = 'CASCADE'), primary_key = True, nullable = False,)
 
     
