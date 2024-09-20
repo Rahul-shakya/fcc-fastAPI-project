@@ -32,3 +32,12 @@ class User(Base):
     email = Column(String, nullable = False, unique = True)
     password = Column(String, nullable = False)
     created_at = Column(TIMESTAMP(timezone = True), nullable = False, server_default = text('now()'))
+
+
+class Like(Base):
+    __tablename__ = 'likes'
+
+    user_id = Column(Integer, ForeignKey('users.id', ondelete = 'CASCADE'), primary_key = True, nullable = False,)
+    post_id = Column(Integer, ForeignKey('tb_posts.id', ondelete = 'CASCADE'), primary_key = True, nullable = False)
+
+    
