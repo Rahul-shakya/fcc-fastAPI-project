@@ -7,6 +7,7 @@ from tokenize import String
 from .. import models, schemas, oauth2
 from fastapi import Response, status, HTTPException, Depends, APIRouter
 from typing import List, Optional
+from sqlalchemy import func
 
 # importing error
 from sqlalchemy.exc import IntegrityError
@@ -24,21 +25,39 @@ router = APIRouter(
 
 # search: Optional[str] = '' has a default empty string because Non-default arguments must appear 
 # before default arguments in the parameter list.
-@router.get("/", response_model = List[schemas.Post])
+# @router.get("/", response_model = List[schemas.Post])
+@router.get("/")
 def get_posts(db: Session = Depends(get_db), user_data: str = Depends(oauth2.get_current_user),
               limit: int = 5, skip: int = 0, search: Optional[str] = ''):
 
     # implementing SQL through SQLAlchemy ORMs
     posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
 
+    # raw SQL query for fetching posts and the number of likes for each post:
+        # -- to avoid counting null values, count(likes.user_id)
+        # -- this is the final query which gives us posts and the number of likes
+        # select tb_posts.*, count(likes.user_id) as likes
+        # from tb_posts left join likes 
+        # on tb_posts.id = likes.post_id
+        # group by tb_posts.id;
+
+    # now performing the same SQL query using SQL Alchemy
+    posts_with_like_count = db.query(models.Post, 
+                                     func.count(models.Like.post_id).label('likes')
+                                     ).join(
+                                         models.Like, models.Like.post_id == models.Post.id, isouter = True
+                                         ).group_by(models.Post.id).all()
+    
+    # tuple unpacking required, it threw an error if directly returned
+    result = list(map(lambda x: {'post': x[0], 'likes': x[1]}, posts_with_like_count))
+
     # if we want to fetch the posts of logged in user only
     # posts = db.query(models.Post).filter(models.Post.user_id == user_data.id).all()
 
     # while printing, it prints the object [<app.models.Post object at 0x000001D5D7537200>, <app.models.Post object at 0x000001D5D....]
     # but while returning posts, proper data is displayed in Postman
-    print(posts)
-    return posts
-
+    print(result)
+    return result
 
 @router.post("/", status_code = status.HTTP_201_CREATED, response_model = schemas.Post)
 def create_post(payLoad: schemas.PostCreate, db: Session = Depends(get_db), user_data: str = Depends(oauth2.get_current_user)):
