@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     algorithm: str
     access_token_expire_minutes: int
 
+    # how is config.py able to locate .env file
     class Config:
         env_file = '.env'
 
