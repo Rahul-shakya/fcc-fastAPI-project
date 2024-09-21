@@ -2,3 +2,5 @@ __pycache__/*
 app/__pycache__/*
 app/routers/__pycache__/*
 alembic-dir/versions/__pycache__*
+alembic-dir/script.py.mako
+alembic-dir/__pycache__/env.cpython-312.pyc
