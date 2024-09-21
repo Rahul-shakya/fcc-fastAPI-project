@@ -93,11 +93,18 @@ def create_post(payLoad: schemas.PostCreate, db: Session = Depends(get_db), user
     return new_post
 
 
-@router.get("/{id}", response_model = schemas.Post)
+@router.get("/{id}", response_model = schemas.PostLike)
 def get_post_by_id(id : int, db: Session = Depends(get_db), user_data: str = Depends(oauth2.get_current_user)):
 
-    post = db.query(models.Post).filter(models.Post.id == id).first()
-    if not post:
+    # post = db.query(models.Post).filter(models.Post.id == id).first()
+
+    post_with_like_count = db.query(models.Post, 
+                                     func.count(models.Like.post_id).label('likes')
+                                     ).join(
+                                         models.Like, models.Like.post_id == models.Post.id, isouter = True
+                                         ).group_by(models.Post.id).filter(
+                                             models.Post.id == id).first()
+    if not post_with_like_count:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,
                         detail = f'Post with id: {id} not found')
     
@@ -106,8 +113,8 @@ def get_post_by_id(id : int, db: Session = Depends(get_db), user_data: str = Dep
     #     raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail = 'Not authorized to perform this action')
     
     # it prints the object, not the data
-    print(post)
-    return post
+    print(post_with_like_count)
+    return post_with_like_count
 
 
 @router.delete("/{id}", status_code = status.HTTP_204_NO_CONTENT)
