@@ -56,6 +56,17 @@ class Post(PostBase):
         from_attributes = True
 
 
+
+class PostLike(BaseModel):
+    Post: Post
+    # optional default values --
+    likes: int
+
+    class Config:
+        # this is new change
+        from_attributes = True
+
+
 class UserCreate(BaseModel):
 
     user_name: str
